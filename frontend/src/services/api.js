@@ -1,7 +1,13 @@
 import axios from 'axios'
 
+// In production (Vercel), VITE_API_BASE_URL is set to the Render backend URL.
+// Locally, we fall back to '/api' which Vite proxies to localhost:8000.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: BASE_URL,
   timeout: 120_000, // 2 min — allow time for model inference
 })
 
@@ -52,7 +58,7 @@ export const getAnalysis = (analysisId) =>
 export const getReport = (analysisId) =>
   api.get(`/analysis/${analysisId}/report`).then(r => r.data)
 
-export const getImageUrl = (analysisId) => `/api/analysis/${analysisId}/image`
+export const getImageUrl = (analysisId) => `${BASE_URL}/analysis/${analysisId}/image`
 
 export const getHistory = () =>
   api.get('/history').then(r => r.data)

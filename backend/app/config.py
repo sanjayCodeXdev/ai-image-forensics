@@ -4,6 +4,13 @@ from pathlib import Path
 from pydantic_settings import BaseSettings
 
 
+# Detect cloud environment (Render sets RENDER=true)
+_ON_CLOUD = os.environ.get("RENDER") == "true" or os.environ.get("CLOUD_ENV") == "true"
+
+# On cloud, use /tmp (ephemeral but process-persistent); locally use relative paths
+_TMP = Path("/tmp") if _ON_CLOUD else Path(__file__).resolve().parent.parent
+
+
 class Settings(BaseSettings):
     # App
     APP_NAME: str = "AI Image Authenticity Detection System"
@@ -12,12 +19,16 @@ class Settings(BaseSettings):
 
     # Paths
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
-    UPLOAD_DIR: Path = BASE_DIR / "uploads"
-    REPORTS_DIR: Path = BASE_DIR / "reports"
+    UPLOAD_DIR: Path = _TMP / "uploads"
+    REPORTS_DIR: Path = _TMP / "reports"
     MODEL_PATH: Path = BASE_DIR / "models" / "image_detector.pt"
 
-    # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./forensics.db"
+    # Database — use /tmp on cloud so SQLite can write
+    DATABASE_URL: str = (
+        f"sqlite+aiosqlite:////tmp/forensics.db"
+        if _ON_CLOUD
+        else "sqlite+aiosqlite:///./forensics.db"
+    )
 
     # File limits
     MAX_FILE_SIZE_MB: int = 20  # 20 MB
@@ -38,7 +49,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     GOOGLE_API_KEY: str = ""
 
-    # CORS — extend via ALLOWED_ORIGINS env var (comma-separated)
+    # CORS — base list + extras from ALLOWED_ORIGINS env var (comma-separated)
     CORS_ORIGINS: list = [
         "http://localhost:5173",
         "http://localhost:3000",
