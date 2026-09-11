@@ -4,17 +4,23 @@ FastAPI application entry point.
 Start with:
     uvicorn app.main:app --reload --port 8000
 """
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.config import settings
 from app.database import init_db
 from app.routes.health_routes import router as health_router
 from app.routes.analysis_routes import router as analysis_router
 from app.routes.history_routes import router as history_router
+
+# On cloud deployments, allow all origins so any frontend can connect.
+# Locally, restrict to the configured whitelist.
+_ON_CLOUD = os.environ.get("RENDER") == "true"
+_CORS_ORIGINS = ["*"] if _ON_CLOUD else settings.get_all_origins()
+_ALLOW_CREDENTIALS = not _ON_CLOUD  # credentials not allowed with wildcard origins
 
 
 # ── Lifespan (startup / shutdown) ─────────────────────────────────────────────
@@ -50,8 +56,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.get_all_origins(),
-    allow_credentials=True,
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=_ALLOW_CREDENTIALS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
