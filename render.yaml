@@ -14,5 +14,5 @@ services:
       - key: MAX_FILE_SIZE_MB
         value: 10
       - key: ALLOWED_ORIGINS
-        value: "https://sanjayCodeXdev.github.io,https://sanjayCodeXdev.github.io/ai-image-forensics"
+        value: "https://sanjayCodeXdev.github.io,https://sanjayCodeXdev.github.io/ai-image-forensics,https://ai-image-forensics.vercel.app,https://ai-image-forensics-sanjayCodeXdev.vercel.app"
     plan: free
