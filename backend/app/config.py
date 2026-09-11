@@ -38,14 +38,23 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     GOOGLE_API_KEY: str = ""
 
-    # CORS
+    # CORS — extend via ALLOWED_ORIGINS env var (comma-separated)
     CORS_ORIGINS: list = [
         "http://localhost:5173",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
+        # GitHub Pages
+        "https://sanjayCodeXdev.github.io",
+        "https://sanjayCodeXdev.github.io/ai-image-forensics",
     ]
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    def get_all_origins(self) -> list:
+        """Merge base origins with any extra ones set via ALLOWED_ORIGINS env var."""
+        extra = os.environ.get("ALLOWED_ORIGINS", "")
+        extras = [o.strip() for o in extra.split(",") if o.strip()]
+        return list(set(self.CORS_ORIGINS + extras))
 
 
 settings = Settings()
